@@ -138,7 +138,7 @@ class UIMainWindow(object):
     def _set_img(self):
         height, width, channel = self.tmp_bgr.shape
         bytesPerLine = 3 * width
-        qimage = QImage(cv2.cvtColor(self.tmp_bgr, cv2.COLOR_BGR2RGB).data, width, height, bytesPerLine, QImage.Format_RGB888)
+        qimage = QImage(cv2.cvtColor(self.face.img_bgr, cv2.COLOR_BGR2RGB).data, width, height, bytesPerLine, QImage.Format_RGB888)
         self.label.setPixmap(QPixmap.fromImage(qimage))
 
     def _whitening(self):
@@ -152,12 +152,13 @@ class UIMainWindow(object):
         self._set_img()
 
     def _largeeye(self):
-        value = min(1, max(self.sl_brightening.value() / 100, 0))
+        # 1.0为推荐value，但允许超过1.0，设置上限
+        value = 1.8*min(1, max(self.sl_largeeye.value() / 100, 0))
         self.face.largeeye(value)
         self._set_img()
 
     def _slimface(self):
-        value = min(1, max(self.sl_brightening.value() / 100, 0))
+        value = min(1, max(self.sl_slimface.value() / 100, 0))
         self.face.slimface(value)
         self._set_img()
 

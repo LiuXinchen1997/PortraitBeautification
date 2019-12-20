@@ -1,3 +1,5 @@
 /.idea
+/.vscode
+/output
 /__pycache__
 /data/shape_predictor_68_face_landmarks.dat
