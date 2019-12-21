@@ -82,6 +82,8 @@ class UIMainWindow(object):
         spacer_item = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.grid_layout.addItem(spacer_item, 2, 2, 1, 1)
         self.ops.append('largeeye')
+        self.bt_largeeye.setEnabled(False)
+        self.sl_largeeye.setEnabled(False)
 
         self.bt_slimface = QtWidgets.QPushButton(self.central_widget)
         self.bt_slimface.setObjectName("btSlimface")

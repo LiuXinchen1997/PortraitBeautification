@@ -99,10 +99,10 @@ class Organ:
         self.img_bgr[:] = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR)[:]
 
     def brightening(self, rate=0.15):
-        original_img_bgr = cv2.cvtColor(self.original_img_bgr, cv2.COLOR_BGR2HSV)
+        original_img_hsv = cv2.cvtColor(self.original_img_bgr, cv2.COLOR_BGR2HSV)
         img_hsv = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2HSV)
 
-        original_patch_hsv = self._get_patch(original_img_bgr)
+        original_patch_hsv = self._get_patch(original_img_hsv)
         patch_hsv = self._get_patch(img_hsv)
         patch_hsv[:, :, 1] = np.minimum(
             original_patch_hsv[:, :, 1] + original_patch_hsv[:, :, 1] * self.patch_mask[:, :, 1] * rate, 255).astype('uint8')
