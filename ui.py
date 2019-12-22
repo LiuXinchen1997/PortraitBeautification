@@ -154,13 +154,13 @@ class UIMainWindow(object):
         self._set_img()
 
     def _largeeye(self):
-        # 1.0为推荐value，但允许超过1.0，设置上限
-        value = 1.8*min(1, max(self.sl_largeeye.value() / 100, 0))
+        value = min(1, max(self.sl_largeeye.value() / 100, 0))
         self.face.largeeye(value)
         self._set_img()
 
     def _slimface(self):
-        value = min(1, max(self.sl_slimface.value() / 100, 0))
+        # 1.0为推荐value，但允许超过1.0，设置上限
+        value = 1.8*min(1, max(self.sl_slimface.value() / 100, 0))
         self.face.slimface(value)
         self._set_img()
 
