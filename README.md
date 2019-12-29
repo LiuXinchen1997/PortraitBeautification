@@ -5,6 +5,7 @@
 ### python与python packet
 
 * python3
+* PyQt5: `pip install PyQt5`
 * dlib: `pip install dlib`失败可尝试指定dlib版本，例如`pip install dlib==19.6.1`（已测试该版本dlib可支持本项目运行）
   * MacOS用户在安装dlib前可能需要安装CMake。可尝试`sudo brew install cmake`或`brew install cmake`。
 * OpenCV: `pip install opencv-python`
@@ -22,7 +23,7 @@
 
 ### GUI操作
 
-1. 打开文件。应可见图片显示在界面中；
+1. `打开文件`，应可见图片显示在界面中；
 2. 滑动滑轨，点击滑轨前按钮（美白/瘦脸……），图片被美化。
 
 ## 计划

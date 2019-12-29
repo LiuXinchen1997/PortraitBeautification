@@ -3,7 +3,6 @@
 import numpy as np
 import dlib
 import cv2
-import matplotlib.pyplot as plt
 import math
 
 
@@ -110,8 +109,8 @@ class Organ:
             original_patch_hsv[:, :, 1] + original_patch_hsv[:, :, 1] * self.patch_mask[:, :, 1] * rate, 255).astype('uint8')
         self.img_bgr[:] = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR)[:]
 
-    def largeeye(self, rate=0.15):
-        print(self.img_bgr.shape)  # height * width * channel
+    def largeeye(self, rate=1.0):
+        print("function 'largeeye' in class 'Organ'")
         pass
 
     @staticmethod
@@ -243,9 +242,12 @@ class Forehead(Organ):
 class Face(Organ):
     def __init__(self, img_bgr, landmarks):
         self.original_img_bgr = img_bgr.copy()
-        self.organs_name = ['jaw', 'mouth', 'nose', 'left eye', 'right eye', 'left brow', 'right brow']
-        self.organs_points = [list(range(0, 17)), list(range(48, 61)), list(range(27, 35)), list(range(42, 48)),
-                              list(range(36, 42)), list(range(22, 27)), list(range(17, 22))]
+        self.organs_name = ['jaw', 'mouth', 'nose', 
+                            'left eye', 'right eye',
+                            'left brow', 'right brow']
+        self.organs_points = [list(range(0, 17)), list(range(48, 61)), list(range(27, 35)), 
+                            list(range(42, 48)), list(range(36, 42)),
+                            list(range(22, 27)), list(range(17, 22))]
         self.organs = {name: Organ(img_bgr, landmarks[points], name) for name, points in
                        zip(self.organs_name, self.organs_points)}
 
@@ -363,9 +365,9 @@ if __name__ == '__main__':
     # print(face.mask_organs.shape)
     # print(face.mask_organs)
 
-    #cv2.imshow('test', face.organs['forehead'].get_abs_mask())
-    #cv2.imshow('test', face.get_abs_mask())  # 除去额头、眼睛、眉毛、鼻子、嘴的其他区域
-    #cv2.imshow('test', face.mask_organs)
+    # cv2.imshow('test', face.organs['forehead'].get_abs_mask())
+    # cv2.imshow('test', face.get_abs_mask())  # 除去额头、眼睛、眉毛、鼻子、嘴的其他区域
+    # cv2.imshow('test', face.mask_organs)
     # cv2.imshow('test', face.organs['left brow'].get_abs_mask())
     
     face.whitening()
@@ -378,5 +380,8 @@ if __name__ == '__main__':
     cv2.imshow("largeeye", bgr)
 
     cv2.waitKey(0)
-    cv2.destroyWindow('test')
-
+    # cv2.destroyWindow('test')
+    cv2.destroyWindow('whitening')
+    cv2.destroyWindow('brightening')
+    cv2.destroyWindow('slimface')
+    cv2.destroyWindow('largeeye')
