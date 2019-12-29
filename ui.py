@@ -1,7 +1,8 @@
+# coding=utf-8
+
 import sys, os
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
 
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QImage,QIcon,QPixmap
@@ -21,10 +22,11 @@ class UIMainWindow(object):
         self._set_connect()
 
     def _setup_ui(self):
-        """
-        添加新的按钮的时候注意别和原打开按钮重合了！
-        :return:
-        """
+        '''
+            ui设定
+        '''
+        #! 添加新的按钮的时候注意别和原打开按钮重合了！
+        
         self.window.setObjectName("MainWindow")
         self.window.resize(837, 838)
         self.central_widget = QtWidgets.QWidget(self.window)
@@ -82,8 +84,6 @@ class UIMainWindow(object):
         spacer_item = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.grid_layout.addItem(spacer_item, 2, 2, 1, 1)
         self.ops.append('largeeye')
-        self.bt_largeeye.setEnabled(False)
-        self.sl_largeeye.setEnabled(False)
 
         self.bt_slimface = QtWidgets.QPushButton(self.central_widget)
         self.bt_slimface.setObjectName("btSlimface")
@@ -123,7 +123,7 @@ class UIMainWindow(object):
 
     def _open_img(self):
         # self.img_path, _ = QFileDialog.getOpenFileName(self.central_widget, '打开图片文件', './',
-                                      #                 'Image Files(*.png *.jpg *.bmp)')
+        #                                               'Image Files(*.png *.jpg *.bmp)')
         self.img_path = './images/1.jpg'
         if self.img_path is None or self.img_path == '':
             return
@@ -140,7 +140,7 @@ class UIMainWindow(object):
     def _set_img(self):
         height, width, channel = self.tmp_bgr.shape
         bytesPerLine = 3 * width
-        qimage = QImage(cv2.cvtColor(self.face.img_bgr, cv2.COLOR_BGR2RGB).data, width, height, bytesPerLine, QImage.Format_RGB888)
+        qimage = QImage(cv2.cvtColor(self.tmp_bgr, cv2.COLOR_BGR2RGB).data, width, height, bytesPerLine, QImage.Format_RGB888)
         self.label.setPixmap(QPixmap.fromImage(qimage))
 
     def _whitening(self):
@@ -154,7 +154,8 @@ class UIMainWindow(object):
         self._set_img()
 
     def _largeeye(self):
-        value = min(1, max(self.sl_largeeye.value() / 100, 0))
+        # 1.0为推荐value，但允许超过1.0，设置上限
+        value = 1.8*min(1, max(self.sl_largeeye.value() / 100, 0))
         self.face.largeeye(value)
         self._set_img()
 
