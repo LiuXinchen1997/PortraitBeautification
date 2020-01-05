@@ -1,7 +1,9 @@
+# coding=utf-8
+
 import numpy as np
 import dlib
 import cv2
-import matplotlib.pyplot as plt
+import math
 
 
 class FaceDetector:
@@ -98,22 +100,116 @@ class Organ:
         self.img_bgr[:] = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR)[:]
 
     def brightening(self, rate=0.15):
-        original_img_bgr = cv2.cvtColor(self.original_img_bgr, cv2.COLOR_BGR2HSV)
+        original_img_hsv = cv2.cvtColor(self.original_img_bgr, cv2.COLOR_BGR2HSV)
         img_hsv = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2HSV)
 
-        original_patch_hsv = self._get_patch(original_img_bgr)
+        original_patch_hsv = self._get_patch(original_img_hsv)
         patch_hsv = self._get_patch(img_hsv)
         patch_hsv[:, :, 1] = np.minimum(
             original_patch_hsv[:, :, 1] + original_patch_hsv[:, :, 1] * self.patch_mask[:, :, 1] * rate, 255).astype('uint8')
         self.img_bgr[:] = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR)[:]
 
-    def largeeye(self, rate=0.15):
-        print(self.img_bgr.shape)  # height * width * channel
+    def largeeye(self, rate=1.0):
+        print("function 'largeeye' in class 'Organ'")
         pass
 
-    def slimface(self, rate=0.15):
-        print(self.img_bgr.shape)  # height * width * channel
-        pass
+    @staticmethod
+    def local_translation(srcImg, startX, startY, endX, endY, radius):
+        '''
+            局部平移
+        '''
+        ddradius = float(radius * radius)
+        copyImg = np.zeros(srcImg.shape, np.uint8)
+        copyImg = srcImg.copy()
+        # 计算公式中的|m-c|^2
+        ddmc = (endX - startX) * (endX - startX) + (endY - startY) * (endY - startY)
+        H, W, C = srcImg.shape
+        for i in range(W):
+            for j in range(H):
+                #计算该点是否在形变圆的范围之内
+                #优化，第一步，直接判断是会在（startX,startY)的矩阵框中
+                if math.fabs(i-startX)>radius and math.fabs(j-startY)>radius:
+                    continue
+
+                distance = (i - startX)*(i - startX) + (j - startY)*(j - startY)
+
+                if(distance < ddradius):
+                    #计算出（i,j）坐标的原坐标
+                    #计算公式中右边平方号里的部分
+                    ratio = (ddradius-distance) / (ddradius - distance + ddmc)
+                    ratio = ratio * ratio
+
+                    #映射原位置
+                    UX = i - ratio  * (endX - startX)
+                    UY = j - ratio  * (endY - startY)
+
+                    #根据双线性插值法得到UX，UY的值
+                    value = Organ.bilinear_interpolate(srcImg,UX,UY)
+                    #改变当前 i ，j的值
+                    copyImg[j,i] = value
+        return copyImg
+    @staticmethod
+    def local_scale(srcImg, startX, startY, endX, endY, radius):
+        '''
+            局部缩放
+        '''
+        ddradius = float(radius * radius)
+        copyImg = np.zeros(srcImg.shape, np.uint8)
+        copyImg = srcImg.copy()
+        # 计算公式中的|m-c|^2
+        ddmc = (endX - startX) * (endX - startX) + (endY - startY) * (endY - startY)
+        H, W, C = srcImg.shape
+        for i in range(W):
+            for j in range(H):
+                #计算该点是否在形变圆的范围之内
+                #优化，第一步，直接判断是会在（startX,startY)的矩阵框中
+                if math.fabs(i-startX)>radius and math.fabs(j-startY)>radius:
+                    continue
+
+                distance = (i - startX)*(i - startX) + (j - startY)*(j - startY)
+
+                if(distance < ddradius):
+                    #计算出（i,j）坐标的原坐标
+                    #计算公式中右边平方号里的部分
+                    ratio = (ddradius-distance) / (ddradius - distance + ddmc)
+                    ratio = ratio * ratio
+
+                    #映射原位置
+                    UX = i - ratio  * (i - startX)
+                    UY = j - ratio  * (j - startY)
+
+                    #根据双线性插值法得到UX，UY的值
+                    value = Organ.bilinear_interpolate(srcImg, UX, UY)
+                    #改变当前 i ，j的值
+                    copyImg[j,i] = value
+        return copyImg
+
+    @staticmethod
+    def bilinear_interpolate(src, ux, uy):
+        '''
+            双线性插值法
+        '''
+        x1 = int(ux)
+        x2 = x1 + 1
+        y1 = int(uy)
+        y2 = y1 + 1
+
+        part1 = src[y1,x1].astype(np.float)*(float(x2) - ux)*(float(y2) - uy)
+        part2 = src[y1,x2].astype(np.float)*(ux - float(x1))*(float(y2) - uy)
+        part3 = src[y2,x1].astype(np.float)*(float(x2) - ux)*(uy - float(y1))
+        part4 = src[y2,x2].astype(np.float)*(ux - float(x1))*(uy - float(y1))
+
+        insertValue = part1 + part2 + part3 + part4
+
+        return insertValue.astype(np.int8)
+
+    @staticmethod
+    def transform(src, landmark_center, landmark_edge, landmark_direction, rate, tranform_function):
+        radius = math.sqrt((landmark_center[0]-landmark_edge[0])*(landmark_center[0]-landmark_edge[0])+
+                            (landmark_center[1]-landmark_edge[1])*(landmark_center[1]-landmark_edge[1]))  
+        radius = rate * radius
+        src[:] = tranform_function(src, landmark_center[0], landmark_center[1], landmark_direction[0], landmark_direction[1], radius)[:]
+        return src
 
     def test(self, rate=0.15):
         self.patch_bgr[:, :, 0][self.patch_bgr[:, :, 0] * self.patch_mask[:, :, 0] > 0] = 0
@@ -146,9 +242,12 @@ class Forehead(Organ):
 class Face(Organ):
     def __init__(self, img_bgr, landmarks):
         self.original_img_bgr = img_bgr.copy()
-        self.organs_name = ['jaw', 'mouth', 'nose', 'left eye', 'right eye', 'left brow', 'right brow']
-        self.organs_points = [list(range(0, 17)), list(range(48, 61)), list(range(27, 35)), list(range(42, 48)),
-                              list(range(36, 42)), list(range(22, 27)), list(range(17, 22))]
+        self.organs_name = ['jaw', 'mouth', 'nose', 
+                            'left eye', 'right eye',
+                            'left brow', 'right brow']
+        self.organs_points = [list(range(0, 17)), list(range(48, 61)), list(range(27, 35)), 
+                            list(range(42, 48)), list(range(36, 42)),
+                            list(range(22, 27)), list(range(17, 22))]
         self.organs = {name: Organ(img_bgr, landmarks[points], name) for name, points in
                        zip(self.organs_name, self.organs_points)}
 
@@ -203,6 +302,57 @@ class Face(Organ):
             original_img_hsv[:, :, -1] + original_img_hsv[:, :, -1] * full_face_mask[:, :, -1] * rate, 255).astype('uint8')
         self.img_bgr[:] = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR)[:]
 
+    def slimface(self, rate=1.0):
+        self.img_bgr[:] = self.original_img_bgr[:]
+        ''' 
+            landmark_4 右脸颊近似鼻尖等高点
+            landmark_6 右脸颊偏下点
+            landmark_14 左脸颊近似鼻尖等高点
+            landmark_16 左脸颊偏下点
+            landmark_31 鼻尖
+            瘦脸-右脸:
+                landmark_4为中心, 
+                landmark_4到landmark_6为影响半径, 
+                landmark_4到landmark_31为瘦脸方向
+            瘦脸-左脸:
+                landmark_14为中心, 
+                landmark_14到landmark_16为影响半径, 
+                landmark_14到landmark_31为瘦脸方向
+            rate系数改变影响半径
+        '''
+        self.transform(self.img_bgr, self.landmarks[3], self.landmarks[5], self.landmarks[30], rate, self.local_translation)
+        self.transform(self.img_bgr, self.landmarks[13], self.landmarks[15], self.landmarks[30], rate, self.local_translation)
+
+    def largeeye(self, rate=1.0):
+        self.img_bgr[:] = self.original_img_bgr[:]
+        '''
+            landmark_37 右眼右眼角
+            landmark_40 右眼左眼角
+            landmark_43 左眼右眼角
+            landmark_46 左眼左眼角
+            landmark_28 鼻梁
+            landmark_31 鼻尖
+            大眼-右眼:
+                landmark_37与landmark_40中点为中心, 
+                该中点到landmark_28为影响半径, 
+                该中点到landmark_31为瘦脸方向
+            大眼-左眼:
+                landmark_43与landmark_46中点为中心, 
+                该中点到landmark_28为影响半径, 
+                该中点到landmark_31为瘦脸方向
+            rate系数改变影响半径
+        '''
+        self.transform(self.img_bgr, 
+                        (self.landmarks[36]+self.landmarks[39])/2,
+                        self.landmarks[27],
+                        self.landmarks[30],
+                        rate, self.local_scale)
+        self.transform(self.img_bgr, 
+                        (self.landmarks[42]+self.landmarks[45])/2,
+                        self.landmarks[27],
+                        self.landmarks[30],
+                        rate, self.local_scale)
+
 
 if __name__ == '__main__':
     image_path = './images/1.jpg'
@@ -211,10 +361,23 @@ if __name__ == '__main__':
     bgr = detector.get_bgr(image_path)
     _, landmarks = detector.get_face_rect_and_landmarks(image_path)
 
-    # 显示掩膜
     face = Face(bgr, landmarks)
-    print(face.mask_organs.shape)
-    print(face.mask_organs)
+    # print(face.mask_organs.shape)
+    # print(face.mask_organs)
+
+    # cv2.imshow('test', face.organs['forehead'].get_abs_mask())
+    # cv2.imshow('test', face.get_abs_mask())  # 除去额头、眼睛、眉毛、鼻子、嘴的其他区域
+    # cv2.imshow('test', face.mask_organs)
+    # cv2.imshow('test', face.organs['left brow'].get_abs_mask())
+    
+    face.whitening()
+    cv2.imshow("whitening", bgr)
+    face.brightening()
+    cv2.imshow("brightening", bgr)
+    face.slimface()
+    cv2.imshow("slimface", bgr)
+    face.largeeye()
+    cv2.imshow("largeeye", bgr)
 
     #cv2.imshow('test', face.organs['forehead'].get_abs_mask())
     #cv2.imshow('test', face.get_abs_mask())  # 除去额头、眼睛、眉毛、鼻子、嘴的其他区域
@@ -222,5 +385,8 @@ if __name__ == '__main__':
     #cv2.imshow('test', face.organs['left brow'].get_abs_mask())
     #cv2.imshow('test', face.organs['mouth'].get_abs_mask() + face.organs['nose'].get_abs_mask() + face.organs['left eye'].get_abs_mask() + face.organs['right eye'].get_abs_mask() + face.organs['left brow'].get_abs_mask() + face.organs['right brow'].get_abs_mask())
     cv2.waitKey(0)
-    cv2.destroyWindow('test')
-
+    # cv2.destroyWindow('test')
+    cv2.destroyWindow('whitening')
+    cv2.destroyWindow('brightening')
+    cv2.destroyWindow('slimface')
+    cv2.destroyWindow('largeeye')

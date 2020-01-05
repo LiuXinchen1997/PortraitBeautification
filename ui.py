@@ -1,7 +1,8 @@
+# coding=utf-8
+
 import sys, os
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
 
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QImage,QIcon,QPixmap
@@ -21,10 +22,11 @@ class UIMainWindow(object):
         self._set_connect()
 
     def _setup_ui(self):
-        """
-        添加新的按钮的时候注意别和原打开按钮重合了！
-        :return:
-        """
+        '''
+            ui设定
+        '''
+        #! 添加新的按钮的时候注意别和原打开按钮重合了！
+        
         self.window.setObjectName("MainWindow")
         self.window.resize(837, 838)
         self.central_widget = QtWidgets.QWidget(self.window)
@@ -121,7 +123,7 @@ class UIMainWindow(object):
 
     def _open_img(self):
         # self.img_path, _ = QFileDialog.getOpenFileName(self.central_widget, '打开图片文件', './',
-                                      #                 'Image Files(*.png *.jpg *.bmp)')
+        #                                               'Image Files(*.png *.jpg *.bmp)')
         self.img_path = './images/1.jpg'
         if self.img_path is None or self.img_path == '':
             return
@@ -152,12 +154,14 @@ class UIMainWindow(object):
         self._set_img()
 
     def _largeeye(self):
-        value = min(1, max(self.sl_brightening.value() / 100, 0))
+        # 1.0为推荐value，但允许超过1.0，设置上限
+        value = 1.8*min(1, max(self.sl_largeeye.value() / 100, 0))
         self.face.largeeye(value)
         self._set_img()
 
     def _slimface(self):
-        value = min(1, max(self.sl_brightening.value() / 100, 0))
+        # 1.0为推荐value，但允许超过1.0，设置上限
+        value = 1.8*min(1, max(self.sl_slimface.value() / 100, 0))
         self.face.slimface(value)
         self._set_img()
 
