@@ -218,8 +218,9 @@ if __name__ == '__main__':
 
     #cv2.imshow('test', face.organs['forehead'].get_abs_mask())
     #cv2.imshow('test', face.get_abs_mask())  # 除去额头、眼睛、眉毛、鼻子、嘴的其他区域
-    #cv2.imshow('test', face.mask_organs)
-    cv2.imshow('test', face.organs['left brow'].get_abs_mask())
+    cv2.imshow('test', face.mask_organs + face.get_abs_mask())
+    #cv2.imshow('test', face.organs['left brow'].get_abs_mask())
+    #cv2.imshow('test', face.organs['mouth'].get_abs_mask() + face.organs['nose'].get_abs_mask() + face.organs['left eye'].get_abs_mask() + face.organs['right eye'].get_abs_mask() + face.organs['left brow'].get_abs_mask() + face.organs['right brow'].get_abs_mask())
     cv2.waitKey(0)
     cv2.destroyWindow('test')
 
