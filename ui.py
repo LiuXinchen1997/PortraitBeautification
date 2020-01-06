@@ -28,7 +28,7 @@ class UIMainWindow(object):
         #! 添加新的按钮的时候注意别和原打开按钮重合了！
         
         self.window.setObjectName("MainWindow")
-        self.window.resize(837, 838)
+        self.window.resize(300, 480)
         self.central_widget = QtWidgets.QWidget(self.window)
         self.central_widget.setObjectName("centralWidget")
         self.vertical_layout = QtWidgets.QVBoxLayout(self.central_widget)
@@ -59,8 +59,8 @@ class UIMainWindow(object):
         self.sl_whitening.setOrientation(QtCore.Qt.Horizontal)
         self.sl_whitening.setObjectName("slWhitening")
         self.grid_layout.addWidget(self.sl_whitening, 0, 1, 1, 1)
-        spacer_item = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.grid_layout.addItem(spacer_item, 0, 2, 1, 1)
+        #spacer_item = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        #self.grid_layout.addItem(spacer_item, 0, 2, 1, 1)
         self.ops.append('whitening')
 
         self.bt_brightening = QtWidgets.QPushButton(self.central_widget)
@@ -70,8 +70,8 @@ class UIMainWindow(object):
         self.sl_brightening.setOrientation(QtCore.Qt.Horizontal)
         self.sl_brightening.setObjectName("slBrightening")
         self.grid_layout.addWidget(self.sl_brightening, 1, 1, 1, 1)
-        spacer_item = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.grid_layout.addItem(spacer_item, 1, 2, 1, 1)
+        #spacer_item = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        #self.grid_layout.addItem(spacer_item, 1, 2, 1, 1)
         self.ops.append('brightening')
 
         self.bt_largeeye = QtWidgets.QPushButton(self.central_widget)
@@ -81,8 +81,8 @@ class UIMainWindow(object):
         self.sl_largeeye.setOrientation(QtCore.Qt.Horizontal)
         self.sl_largeeye.setObjectName("slLargeeye")
         self.grid_layout.addWidget(self.sl_largeeye, 2, 1, 1, 1)
-        spacer_item = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.grid_layout.addItem(spacer_item, 2, 2, 1, 1)
+        #spacer_item = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        #self.grid_layout.addItem(spacer_item, 2, 2, 1, 1)
         self.ops.append('largeeye')
 
         self.bt_slimface = QtWidgets.QPushButton(self.central_widget)
@@ -92,8 +92,8 @@ class UIMainWindow(object):
         self.sl_slimface.setOrientation(QtCore.Qt.Horizontal)
         self.sl_slimface.setObjectName("slSlimface")
         self.grid_layout.addWidget(self.sl_slimface, 3, 1, 1, 1)
-        spacer_item = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.grid_layout.addItem(spacer_item, 3, 2, 1, 1)
+        #spacer_item = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        #self.grid_layout.addItem(spacer_item, 3, 2, 1, 1)
         self.ops.append('slimface')
 
         self.bt_open = QtWidgets.QPushButton(self.central_widget)
