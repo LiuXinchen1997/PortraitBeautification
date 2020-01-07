@@ -2,13 +2,14 @@
 
 import sys, os
 import numpy as np
+import math
 import cv2
 
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QImage,QIcon,QPixmap
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox, QWidget
 
-from utils import FaceDetector, Face
+from utils import FaceDetector, Face, FaceProcessor
 
 
 class UIMainWindow(object):
@@ -104,6 +105,10 @@ class UIMainWindow(object):
         self.bt_open.setObjectName("bt_open")
         self.grid_layout.addWidget(self.bt_open, 4, 0, 1, 1)
 
+        self.bt_restart = QtWidgets.QPushButton(self.central_widget)
+        self.bt_restart.setObjectName("bt_restart")
+        self.grid_layout.addWidget(self.bt_restart, 4, 1, 1, 1)
+
         self.vertical_layout.addLayout(self.grid_layout)
         self.window.setCentralWidget(self.central_widget)
 
@@ -119,11 +124,31 @@ class UIMainWindow(object):
         self.bt_slimface.setText(_translate("MainWindow", "瘦脸"))
 
         self.bt_open.setText(_translate("MainWindow", "打开文件"))
+        self.bt_restart.setText(_translate("MainWindow", "重置图片"))
 
     def _set_connect(self):
         self.bt_open.clicked.connect(self._open_img)
+        self.bt_restart.clicked.connect(self._restart)
         for op in self.ops:
             self.__getattribute__('bt_' + op).clicked.connect(self.__getattribute__('_' + op))
+
+        self.sl_slimface.sliderReleased.connect(self._reset_pos)
+        self.sl_largeeye.sliderReleased.connect(self._reset_pos)
+
+    def _reset_pos(self):
+        rate = self.sl_slimface.value()
+        if self.sl_slimface.value() - math.floor(rate / 20) * 20 > 10:
+            rate = (math.floor(rate / 20) + 1) * 20
+        else:
+            rate = (math.floor(rate / 20) * 20)
+        self.sl_slimface.setValue(rate)
+
+        rate2 = self.sl_largeeye.value()
+        if self.sl_largeeye.value() - math.floor(rate2 / 20) * 20 > 10:
+            rate2 = (math.floor(rate2 / 20) + 1) * 20
+        else:
+            rate2 = (math.floor(rate2 / 20) * 20)
+        self.sl_largeeye.setValue(rate2)
 
     def _open_img(self):
         # self.img_path, _ = QFileDialog.getOpenFileName(self.central_widget, '打开图片文件', './',
@@ -139,6 +164,7 @@ class UIMainWindow(object):
         _, self.landmarks = self.face_detector.get_face_rect_and_landmarks(self.img_path)
 
         self.face = Face(self.tmp_bgr, self.landmarks)
+        self.face_processor = FaceProcessor(self.face)
         self._set_original_img()
         self._set_img()
 
@@ -154,25 +180,36 @@ class UIMainWindow(object):
         qimage = QImage(cv2.cvtColor(self.tmp_bgr, cv2.COLOR_BGR2RGB).data, width, height, bytesPerLine, QImage.Format_RGB888)
         self.label2.setPixmap(QPixmap.fromImage(qimage))
 
+    def _restart(self):
+        self.sl_whitening.setValue(0)
+        self.sl_brightening.setValue(0)
+        self.sl_slimface.setValue(0)
+        self.sl_largeeye.setValue(0)
+        self.tmp_bgr = self.img_bgr.copy()
+        self.tmp_hsv = self.img_hsv.copy()
+        self.face = Face(self.tmp_bgr, self.landmarks)
+        self.face_processor = FaceProcessor(self.face)
+        self._set_img()
+
     def _whitening(self):
-        value = min(1, max(self.sl_whitening.value() / 300., 0))
-        self.face.whitening(value)
+        rate = min(1, max(self.sl_whitening.value() / 300., 0))
+        self.face_processor.whitening(rate)
         self._set_img()
 
     def _brightening(self):
-        value = min(1, max(self.sl_brightening.value() / 100, 0))
-        self.face.organs['mouth'].brightening(value)
+        rate = min(1, max(self.sl_brightening.value() / 100, 0))
+        self.face_processor.brightening(rate)
         self._set_img()
 
     def _largeeye(self):
         # 1.0为推荐value，但允许超过1.0，设置上限
-        value = 1.8*min(1, max(self.sl_largeeye.value() / 100, 0))
+        value = 1.8*min(1, max(self.sl_largeeye.value() / 200, 0))
         self.face.largeeye(value)
         self._set_img()
 
     def _slimface(self):
         # 1.0为推荐value，但允许超过1.0，设置上限
-        value = 1.8*min(1, max(self.sl_slimface.value() / 100, 0))
+        value = 1.8*min(1, max(self.sl_slimface.value() / 200, 0))
         self.face.slimface(value)
         self._set_img()
 

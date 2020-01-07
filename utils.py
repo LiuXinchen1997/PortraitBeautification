@@ -92,23 +92,6 @@ class Organ:
 
         return mask
 
-    def whitening(self, rate=0.15):
-        img_hsv = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2HSV)
-        patch_hsv = self._get_patch(img_hsv)
-        patch_hsv[:, :, -1] = np.minimum(
-            patch_hsv[:, :, -1] + patch_hsv[:, :, -1] * self.patch_mask[:, :, -1] * rate, 255).astype('uint8')
-        self.img_bgr[:] = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR)[:]
-
-    def brightening(self, rate=0.15):
-        original_img_hsv = cv2.cvtColor(self.original_img_bgr, cv2.COLOR_BGR2HSV)
-        img_hsv = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2HSV)
-
-        original_patch_hsv = self._get_patch(original_img_hsv)
-        patch_hsv = self._get_patch(img_hsv)
-        patch_hsv[:, :, 1] = np.minimum(
-            original_patch_hsv[:, :, 1] + original_patch_hsv[:, :, 1] * self.patch_mask[:, :, 1] * rate, 255).astype('uint8')
-        self.img_bgr[:] = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR)[:]
-
     def largeeye(self, rate=1.0):
         print("function 'largeeye' in class 'Organ'")
         pass
@@ -293,15 +276,6 @@ class Face(Organ):
         landmarks = cv2.convexHull(index_abs).squeeze()
         return landmarks
 
-    def whitening(self, rate=0.15):
-        original_img_hsv = cv2.cvtColor(self.original_img_bgr, cv2.COLOR_BGR2HSV)
-        img_hsv = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2HSV)
-
-        full_face_mask = self.get_abs_mask() + self.mask_organs
-        img_hsv[:, :, -1] = np.minimum(
-            original_img_hsv[:, :, -1] + original_img_hsv[:, :, -1] * full_face_mask[:, :, -1] * rate, 255).astype('uint8')
-        self.img_bgr[:] = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR)[:]
-
     def slimface(self, rate=1.0):
         self.img_bgr[:] = self.original_img_bgr[:]
         ''' 
@@ -352,6 +326,36 @@ class Face(Organ):
                         self.landmarks[27],
                         self.landmarks[30],
                         rate, self.local_scale)
+
+
+class FaceProcessor:
+    def __init__(self, face):
+        self.face = face
+
+    def set_face(self, new_face):
+        self.face = new_face
+
+    def whitening(self, rate=0.15):
+        original_img_hsv = cv2.cvtColor(self.face.original_img_bgr, cv2.COLOR_BGR2HSV)
+        img_hsv = cv2.cvtColor(self.face.img_bgr, cv2.COLOR_BGR2HSV)
+
+        full_face_mask = self.face.get_abs_mask() + self.face.mask_organs
+        img_hsv[:, :, -1] = np.minimum(
+            original_img_hsv[:, :, -1] + original_img_hsv[:, :, -1] * full_face_mask[:, :, -1] * rate, 255).astype(
+            'uint8')
+        self.face.img_bgr[:] = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR)[:]
+
+    def brightening(self, rate):
+        mouth = self.face.organs['mouth']
+        original_img_hsv = cv2.cvtColor(mouth.original_img_bgr, cv2.COLOR_BGR2HSV)
+        img_hsv = cv2.cvtColor(mouth.img_bgr, cv2.COLOR_BGR2HSV)
+
+        original_patch_hsv = mouth._get_patch(original_img_hsv)
+        patch_hsv = mouth._get_patch(img_hsv)
+        patch_hsv[:, :, 1] = np.minimum(
+            original_patch_hsv[:, :, 1] + original_patch_hsv[:, :, 1] * mouth.patch_mask[:, :, 1] * rate, 255).astype(
+            'uint8')
+        mouth.img_bgr[:] = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2BGR)[:]
 
 
 if __name__ == '__main__':
