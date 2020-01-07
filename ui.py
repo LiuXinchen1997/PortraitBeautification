@@ -115,6 +115,16 @@ class UIMainWindow(object):
         self._retranslate()
         QtCore.QMetaObject.connectSlotsByName(self.window)
 
+        self.bt_whitening.setEnabled(False)
+        self.bt_brightening.setEnabled(False)
+        self.bt_largeeye.setEnabled(False)
+        self.bt_slimface.setEnabled(False)
+        self.bt_restart.setEnabled(False)
+        self.sl_whitening.setEnabled(False)
+        self.sl_brightening.setEnabled(False)
+        self.sl_slimface.setEnabled(False)
+        self.sl_largeeye.setEnabled(False)
+
     def _retranslate(self):
         _translate = QtCore.QCoreApplication.translate
         self.window.setWindowTitle(_translate("MainWindow", "人像美颜"))
@@ -130,10 +140,7 @@ class UIMainWindow(object):
         self.bt_open.clicked.connect(self._open_img)
         self.bt_restart.clicked.connect(self._restart)
         for op in self.ops:
-            self.__getattribute__('bt_' + op).clicked.connect(self.__getattribute__('_' + op))
-
-        self.sl_slimface.sliderReleased.connect(self._reset_pos)
-        self.sl_largeeye.sliderReleased.connect(self._reset_pos)
+            self.__getattribute__('sl_' + op).sliderReleased.connect(self.__getattribute__('_beautify'))
 
     def _reset_pos(self):
         rate = self.sl_slimface.value()
@@ -168,6 +175,12 @@ class UIMainWindow(object):
         self._set_original_img()
         self._set_img()
 
+        self.bt_restart.setEnabled(True)
+        self.sl_whitening.setEnabled(True)
+        self.sl_brightening.setEnabled(True)
+        self.sl_slimface.setEnabled(True)
+        self.sl_largeeye.setEnabled(True)
+
     def _set_original_img(self):
         height, width, channel = self.img_bgr.shape
         bytesPerLine = 3 * width
@@ -191,26 +204,13 @@ class UIMainWindow(object):
         self.face_processor = FaceProcessor(self.face)
         self._set_img()
 
-    def _whitening(self):
-        rate = min(1, max(self.sl_whitening.value() / 300., 0))
-        self.face_processor.whitening(rate)
-        self._set_img()
+    def _beautify(self):
+        w_rate = min(1, max(self.sl_whitening.value() / 300., 0))
+        b_rate = min(1, max(self.sl_brightening.value() / 100, 0))
+        l_rate = 1.8 * min(1, max(self.sl_largeeye.value() / 100, 0))
+        s_rate = 1.8 * min(1, max(self.sl_slimface.value() / 100, 0))
 
-    def _brightening(self):
-        rate = min(1, max(self.sl_brightening.value() / 100, 0))
-        self.face_processor.brightening(rate)
-        self._set_img()
-
-    def _largeeye(self):
-        # 1.0为推荐value，但允许超过1.0，设置上限
-        value = 1.8*min(1, max(self.sl_largeeye.value() / 200, 0))
-        self.face.largeeye(value)
-        self._set_img()
-
-    def _slimface(self):
-        # 1.0为推荐value，但允许超过1.0，设置上限
-        value = 1.8*min(1, max(self.sl_slimface.value() / 200, 0))
-        self.face.slimface(value)
+        self.face_processor.beautify(w_rate=w_rate, b_rate=b_rate, l_rate=l_rate, s_rate=s_rate)
         self._set_img()
 
 
