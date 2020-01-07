@@ -28,7 +28,7 @@ class UIMainWindow(object):
         #! 添加新的按钮的时候注意别和原打开按钮重合了！
         
         self.window.setObjectName("MainWindow")
-        self.window.resize(300, 480)
+        self.window.resize(600, 480)
         self.central_widget = QtWidgets.QWidget(self.window)
         self.central_widget.setObjectName("centralWidget")
         self.vertical_layout = QtWidgets.QVBoxLayout(self.central_widget)
@@ -46,8 +46,12 @@ class UIMainWindow(object):
         self.scroll_area_widget_contents.setObjectName("scrollAreaWidgetContents")
         self.sa.setWidget(self.scroll_area_widget_contents)
         self.vertical_layout.addWidget(self.sa)
+
         self.label = QtWidgets.QLabel(self.window)
-        self.sa.setWidget(self.label)
+        self.label2 = QtWidgets.QLabel(self.window)
+        self.label_layout = QtWidgets.QHBoxLayout(self.sa)
+        self.label_layout.addWidget(self.label)
+        self.label_layout.addWidget(self.label2)
 
         self.grid_layout = QtWidgets.QGridLayout()
         self.grid_layout.setObjectName("gridLayout")
@@ -135,13 +139,20 @@ class UIMainWindow(object):
         _, self.landmarks = self.face_detector.get_face_rect_and_landmarks(self.img_path)
 
         self.face = Face(self.tmp_bgr, self.landmarks)
+        self._set_original_img()
         self._set_img()
+
+    def _set_original_img(self):
+        height, width, channel = self.img_bgr.shape
+        bytesPerLine = 3 * width
+        qimage = QImage(cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2RGB).data, width, height, bytesPerLine, QImage.Format_RGB888)
+        self.label.setPixmap(QPixmap.fromImage(qimage))
 
     def _set_img(self):
         height, width, channel = self.tmp_bgr.shape
         bytesPerLine = 3 * width
         qimage = QImage(cv2.cvtColor(self.tmp_bgr, cv2.COLOR_BGR2RGB).data, width, height, bytesPerLine, QImage.Format_RGB888)
-        self.label.setPixmap(QPixmap.fromImage(qimage))
+        self.label2.setPixmap(QPixmap.fromImage(qimage))
 
     def _whitening(self):
         value = min(1, max(self.sl_whitening.value() / 300., 0))
